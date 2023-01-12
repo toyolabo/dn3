@@ -29,6 +29,7 @@ class BaseProcess(object):
     """
 
     def __init__(self, lr=0.001, metrics=None, evaluation_only_metrics=None, l2_weight_decay=0.01, cuda=None, **kwargs):
+        print("CUDA:", cuda)
         """
         Initialization of the Base Trainable object. Any learning procedure that leverages DN3atasets should subclass
         this base class.
