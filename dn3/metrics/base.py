@@ -1,5 +1,6 @@
 import functools
 import sklearn.metrics as skmetrics
+import warnings
 
 
 def _handle_cropped(y_p):
@@ -65,7 +66,12 @@ def auroc(y_t, y_p):
 
 @dn3_sklearn_metric
 def balanced_accuracy(y_t, y_p):
-    return skmetrics.balanced_accuracy_score(y_t, y_p)
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        bac = skmetrics.balanced_accuracy_score(y_t, y_p)
+    
+    return bac
 
 
 @dn3_sklearn_metric
