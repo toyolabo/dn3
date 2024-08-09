@@ -19,6 +19,8 @@ from pandas import DataFrame
 from collections import OrderedDict
 from torch.utils.data import DataLoader, WeightedRandomSampler
 
+import wandb
+
 
 class BaseProcess(object):
     """
@@ -528,11 +530,13 @@ class BaseProcess(object):
 
         def _validation(epoch, iteration=None):
             _metrics = self.evaluate(validation_dataset, **loader_kwargs)
+            _metrics['epoch'] = epoch
             if iteration is not None:
                 self.standard_logging(_metrics, "Validation: Epoch {} - Iteration {}".format(epoch, iteration))
+                wandb.log({"valid": {"iteration": iteration, "metrics": metrics}})
             else:
                 self.standard_logging(_metrics, "Validation: End of Epoch {}".format(epoch))
-            _metrics['epoch'] = epoch
+                wandb.log({"valid_summary": metrics})
             validation_log.append(_metrics)
             return _metrics
 
@@ -553,6 +557,7 @@ class BaseProcess(object):
                 train_metrics['epoch'] = epoch
                 train_metrics['iteration'] = iteration
                 train_log.append(train_metrics)
+                wandb.log({"train": train_metrics})
                 if callable(step_callback):
                     step_callback(train_metrics)
 
@@ -573,6 +578,7 @@ class BaseProcess(object):
             metrics = metrics.mean().to_dict()
             metrics.pop('iteration', None)
             print_training_metrics(epoch)
+            wandb.log({"train_summary": metrics})
 
             if validation_dataset is not None:
                 metrics = _validation(epoch)
