@@ -551,8 +551,11 @@ class DatasetConfig:
                                                                               data_min=self.data_min)))
             xform = MappingDeep1010(_dum, **self.deep1010)
             recording.add_transform(xform)
-            self._add_deep1010([raw.ch_names[i] for i in picks], xform.mapping.numpy(),
-                               [raw.ch_names[i] for i in range(len(raw.ch_names)) if i not in picks])
+            try:
+                self._add_deep1010([raw.ch_names[i] for i in picks], xform.mapping.numpy(),
+                                [raw.ch_names[i] for i in range(len(raw.ch_names)) if i not in picks])
+            except ValueError as e:
+                raise DN3ConfigException("The recording at {} has invalid raw sequence.".format(str(session)))
 
         if recording.sfreq != new_sfreq:
             new_sequence_len = int(tlen * new_sfreq) if self._samples is None else self._samples
