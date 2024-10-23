@@ -64,6 +64,11 @@ def auroc(y_t, y_p):
     return skmetrics.roc_auc_score(y_t, y_p)
 
 
+# @dn3_sklearn_binarized
+# def prauc(y_t, y_p):
+#     return skmetrics.average_precision_score(y_t, y_p)
+
+
 @dn3_sklearn_metric
 def balanced_accuracy(y_t, y_p):
 

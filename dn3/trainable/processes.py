@@ -130,6 +130,7 @@ class BaseProcess(object):
         self.scheduler = scheduler
 
     def add_metrics(self, metrics: dict, evaluation_only=False):
+        # print(">>>> ADDED METRICS:", metrics)
         self.metrics.update(**metrics)
         if evaluation_only:
             self._eval_metrics += list(metrics.keys())
@@ -251,7 +252,9 @@ class BaseProcess(object):
                 metrics[met_name] = met_fn(inputs, outputs)
             # I know its super broad, but basically if metrics fail during training, I want to just ignore them...
             except:
-                continue
+                print(">>>> Failed compute metrics:", met_name, met_fn)
+                #continue
+                raise
         return metrics
 
     def backward(self, loss):
@@ -360,7 +363,7 @@ class BaseProcess(object):
                 start_message += " {}: {:.3e} |".format(m, metrics[m])
             else:
                 start_message += " {}: {:.3f} |".format(m, metrics[m])
-        tqdm.tqdm.write(start_message)
+        # tqdm.tqdm.write(start_message)
 
     def save_best(self):
         """
@@ -388,6 +391,7 @@ class BaseProcess(object):
         if retain_string is None:
             return old_checkpoint
         best_checkpoint = old_checkpoint
+        # print(">>> metrics_to_check:", metrics_to_check)
 
         def found_best():
             tqdm.tqdm.write("Best {}. Retaining checkpoint...".format(retain_string))
@@ -527,15 +531,17 @@ class BaseProcess(object):
                 self.standard_logging(metrics, "Training: Epoch {} - Iteration {}".format(epoch, iteration))
             else:
                 self.standard_logging(metrics, "Training: End of Epoch {}".format(epoch))
+            pass
 
         def _validation(epoch, iteration=None):
             _metrics = self.evaluate(validation_dataset, **loader_kwargs)
+            # print(">>>> _metrics:", _metrics)
             _metrics['epoch'] = epoch
             if iteration is not None:
-                self.standard_logging(_metrics, "Validation: Epoch {} - Iteration {}".format(epoch, iteration))
+                # self.standard_logging(_metrics, "Validation: Epoch {} - Iteration {}".format(epoch, iteration))
                 wandb.log({"valid": {"iteration": iteration, "metrics": metrics}})
             else:
-                self.standard_logging(_metrics, "Validation: End of Epoch {}".format(epoch))
+                # self.standard_logging(_metrics, "Validation: End of Epoch {}".format(epoch))
                 wandb.log({"valid_summary": metrics})
             validation_log.append(_metrics)
             return _metrics
@@ -562,7 +568,7 @@ class BaseProcess(object):
                     step_callback(train_metrics)
 
                 if iteration % train_log_interval == 0 and pbar.total != iteration:
-                    print_training_metrics(epoch, iteration)
+                    # print_training_metrics(epoch, iteration)
                     if callable(log_callback):
                         log_callback(metrics)
                     metrics = OrderedDict()
@@ -577,7 +583,7 @@ class BaseProcess(object):
             metrics = metrics[metrics['epoch'] == epoch]
             metrics = metrics.mean().to_dict()
             metrics.pop('iteration', None)
-            print_training_metrics(epoch)
+            # print_training_metrics(epoch)
             wandb.log({"train_summary": metrics})
 
             if validation_dataset is not None:
